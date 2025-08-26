@@ -20,13 +20,13 @@
     "start": "node dist/cli.js"
   },
   "dependencies": {
-    "@akaoio/tui": "^1.1.1",
-    "@akaoio/air": "^2.0.1",
-    "@akaoio/gun": "^0.2020.1240"
+    "@akaoio/tui": "workspace:*",
+    "@akaoio/air": "workspace:*",
+    "@akaoio/gun": "workspace:*"
   },
   "devDependencies": {
-    "@akaoio/builder": "^1.0.2",
-    "@akaoio/battle": "^1.2.0",
+    "@akaoio/builder": "workspace:*",
+    "@akaoio/battle": "workspace:*",
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
   },
