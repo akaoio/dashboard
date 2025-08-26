@@ -1,0 +1,54 @@
+{
+  "name": "@akaoio/dashboard",
+  "version": "1.0.0",
+  "description": "Real-time Living Agent Network Dashboard - Core technology for visualizing distributed systems",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "akaoio-builder",
+    "dev": "akaoio-builder --watch",
+    "test": "battle",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@akaoio/tui": "workspace:*",
+    "@akaoio/air": "workspace:*",
+    "@akaoio/gun": "workspace:*"
+  },
+  "devDependencies": {
+    "@akaoio/builder": "workspace:*",
+    "@akaoio/battle": "workspace:*",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "dashboard",
+    "real-time",
+    "tui",
+    "terminal",
+    "monitoring",
+    "distributed",
+    "p2p",
+    "air",
+    "gun",
+    "living-agents"
+  ],
+  "author": "akaoio",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akaoio/dashboard.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
