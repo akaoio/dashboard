@@ -8,13 +8,13 @@ import Gun from '@akaoio/gun';
 import type { Message } from './types';
 
 export class MessageFeed extends EventEmitter {
-  private gun: Gun;
+  private gun: any;
   private messagesChannel: any;
   private broadcastChannel: any;
   private messages: Message[] = [];
   private maxMessages: number;
   
-  constructor(gun: Gun, maxMessages: number = 1000) {
+  constructor(gun: any, maxMessages: number = 1000) {
     super();
     this.gun = gun;
     this.maxMessages = maxMessages;

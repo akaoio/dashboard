@@ -10,6 +10,11 @@ export interface DashboardConfig {
   gunOptions?: any;
   theme?: DashboardTheme;
   refreshInterval?: number;
+  agentMode?: {
+    id: string;
+    team: string;
+    role: string;
+  };
 }
 
 export interface DashboardTheme {
@@ -28,6 +33,13 @@ export interface DashboardState {
   metrics: Metrics;
   startTime: number;
   isRunning: boolean;
+  terminal?: TerminalInfo;
+}
+
+export interface TerminalInfo {
+  width: number;
+  height: number;
+  capabilities: any;
 }
 
 export interface Agent {
@@ -42,7 +54,7 @@ export interface Agent {
 export type AgentStatus = 'online' | 'offline' | 'busy' | 'error';
 
 export interface Message {
-  id: string;
+  id?: string;
   from: string;
   text: string;
   team?: string;

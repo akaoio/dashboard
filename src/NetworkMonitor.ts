@@ -7,12 +7,12 @@ import { EventEmitter } from 'events';
 import Gun from '@akaoio/gun';
 
 export class NetworkMonitor extends EventEmitter {
-  private gun: Gun;
+  private gun: any;
   private peers: Map<string, PeerStatus>;
   private pingInterval?: NodeJS.Timeout;
   private isRunning: boolean = false;
   
-  constructor(gun: Gun) {
+  constructor(gun: any) {
     super();
     this.gun = gun;
     this.peers = new Map();
@@ -71,7 +71,7 @@ export class NetworkMonitor extends EventEmitter {
             from: 'dashboard',
             peer: peerId,
             timestamp: Date.now()
-          }, (ack) => {
+          }, (ack: any) => {
             clearTimeout(timeout);
             if (ack.err) reject(ack.err);
             else resolve(ack);
