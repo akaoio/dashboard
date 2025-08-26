@@ -1,6 +1,6 @@
 {
   "name": "@akaoio/dashboard",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Real-time Living Agent Network Dashboard - Core technology for visualizing distributed systems",
   "type": "module",
   "main": "dist/index.js",
