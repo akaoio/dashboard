@@ -1,0 +1,205 @@
+project:
+  name: "@akaoio/dashboard"
+  version: "1.0.0"
+  license: "MIT"
+  author: "AKAO.IO"
+  repository: "https://github.com/akaoio/dashboard"
+  description: "Real-time Living Agent Network Dashboard - Revolutionary visualization and control center for the Air-based multi-agent ecosystem"
+  philosophy: "Where agents come alive - real-time visualization of the living agent ecosystem"
+
+core_principles:
+  - title: "Living Agent Visualization"
+    description: "Real-time display of agent activity, communication, and state across the entire Air network"
+    critical: true
+  
+  - title: "P2P Network Monitoring"
+    description: "Direct connection to GUN database on port 8765 for live agent updates without polling"
+    critical: true
+  
+  - title: "Universal Access"
+    description: "Works in any modern browser with no installation - pure web technologies"
+    critical: true
+  
+  - title: "Zero Configuration"
+    description: "Automatically discovers and connects to the local Air network"
+    critical: true
+
+architecture:
+  overview: "Dashboard provides a revolutionary real-time window into the Living Agent Network, visualizing agent communication, task execution, and system health through direct P2P connections."
+  
+  components:
+    - name: "Web Interface"
+      description: "Pure HTML/CSS/JS interface with real-time updates"
+      responsibility: "User interaction and visualization"
+    
+    - name: "Air Network Connector"
+      description: "WebSocket connection to GUN database on port 8765"
+      responsibility: "Real-time data synchronization with agent network"
+    
+    - name: "Agent Monitor"
+      description: "Tracks all active agents, their status, and communication"
+      responsibility: "Agent lifecycle and activity monitoring"
+    
+    - name: "Task Visualizer"
+      description: "Real-time display of task flow between agents"
+      responsibility: "Task tracking and dependency visualization"
+    
+    - name: "Integrity Scanner"
+      description: "Live integrity scoring and violation detection"
+      responsibility: "Code quality and integrity enforcement"
+    
+    - name: "Network Graph"
+      description: "Interactive visualization of agent relationships and communication patterns"
+      responsibility: "Network topology and message flow display"
+
+features:
+  - name: "Real-Time Agent Status"
+    description: "Live status of all 34+ agents with health indicators"
+  
+  - name: "Communication Flow"
+    description: "Visual representation of agent-to-agent messages in real-time"
+  
+  - name: "Task Pipeline"
+    description: "Track tasks as they flow through different agents and teams"
+  
+  - name: "Integrity Monitoring"
+    description: "Real-time integrity scores and violation alerts"
+  
+  - name: "Network Topology"
+    description: "Interactive graph showing agent connections and dependencies"
+  
+  - name: "Event Stream"
+    description: "Live feed of all agent events and system messages"
+  
+  - name: "Performance Metrics"
+    description: "Real-time performance data for each agent and the overall system"
+  
+  - name: "Command Center"
+    description: "Direct control interface for agent activation and task assignment"
+
+living_agent_system:
+  description: "Dashboard connects directly to the Air-based Living Agent System, providing unprecedented visibility into the autonomous agent ecosystem"
+  
+  capabilities:
+    - "Monitor agent registration and discovery"
+    - "Track real-time message passing between agents"
+    - "Visualize task distribution and load balancing"
+    - "Display agent health and performance metrics"
+    - "Show integrity violations as they occur"
+    - "Provide historical analysis of agent behavior"
+  
+  gun_integration:
+    port: 8765
+    protocol: "WebSocket"
+    features:
+      - "Real-time data sync without polling"
+      - "Distributed state management"
+      - "Peer-to-peer communication"
+      - "Offline-first architecture"
+      - "Conflict-free replicated data types (CRDTs)"
+
+visualization_modes:
+  - name: "Network View"
+    description: "Graph visualization of agent connections and communication flows"
+  
+  - name: "Team View"
+    description: "Organized display of agents by their team affiliations"
+  
+  - name: "Task View"
+    description: "Timeline of task execution across multiple agents"
+  
+  - name: "Integrity View"
+    description: "Heat map of code integrity scores across the system"
+  
+  - name: "Performance View"
+    description: "Real-time metrics and performance indicators"
+  
+  - name: "Event Stream"
+    description: "Chronological feed of all system events"
+
+agent_teams:
+  - name: "Core Teams"
+    teams: ["core-fix", "feature-dev", "integration", "security", "integrity", "meta"]
+  
+  - name: "Technology Teams"
+    teams: ["team-composer", "team-battle", "team-builder", "team-access", "team-air", "team-tui", "team-ui"]
+
+commands:
+  subcommands:
+    - name: "serve"
+      description: "Start the dashboard web server"
+      usage: "dashboard serve [options]"
+      options:
+        - flag: "--port"
+          description: "Port to serve on"
+          default: "3000"
+        - flag: "--air-url"
+          description: "Air network URL to connect to"
+          default: "http://localhost:8765"
+        - flag: "--open"
+          description: "Open browser automatically"
+      examples:
+        - command: "dashboard serve"
+          description: "Start with default settings"
+        - command: "dashboard serve --port 8080 --open"
+          description: "Start on port 8080 and open browser"
+    
+    - name: "connect"
+      description: "Connect to Air network"
+      usage: "dashboard connect [url]"
+      examples:
+        - command: "dashboard connect"
+          description: "Connect to default local Air network"
+        - command: "dashboard connect http://remote:8765"
+          description: "Connect to remote Air network"
+    
+    - name: "monitor"
+      description: "Monitor agent activity"
+      usage: "dashboard monitor [agent-name]"
+      examples:
+        - command: "dashboard monitor"
+          description: "Monitor all agents"
+        - command: "dashboard monitor meta"
+          description: "Monitor specific agent"
+    
+    - name: "export"
+      description: "Export dashboard data"
+      usage: "dashboard export [format]"
+      examples:
+        - command: "dashboard export json"
+          description: "Export as JSON"
+        - command: "dashboard export csv"
+          description: "Export as CSV"
+
+environment_variables:
+  - name: "DASHBOARD_PORT"
+    description: "Default port for dashboard server"
+    default: "3000"
+  
+  - name: "DASHBOARD_AIR_URL"
+    description: "Default Air network URL"
+    default: "http://localhost:8765"
+  
+  - name: "DASHBOARD_THEME"
+    description: "UI theme (light/dark/auto)"
+    default: "auto"
+  
+  - name: "DASHBOARD_UPDATE_INTERVAL"
+    description: "Data refresh interval in milliseconds"
+    default: "1000"
+  
+  - name: "DASHBOARD_MAX_EVENTS"
+    description: "Maximum events to display in stream"
+    default: "1000"
+
+why_dashboard:
+  title: "Why Dashboard Matters"
+  description: "Dashboard transforms the abstract concept of multi-agent systems into a tangible, visual experience. It's the window into the living ecosystem where autonomous agents collaborate, communicate, and evolve in real-time."
+  
+  benefits:
+    - "See the invisible - watch agents communicate in real-time"
+    - "Understand emergence - observe collective behavior patterns"
+    - "Debug complexity - trace issues across multiple agents"
+    - "Monitor health - ensure system integrity and performance"
+    - "Control chaos - direct intervention when needed"
+    - "Learn patterns - discover optimal agent configurations"

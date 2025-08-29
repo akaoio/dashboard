@@ -1,12 +1,12 @@
 /**
  * @akaoio/dashboard - Universal Communication CLI
  * For BOTH humans and agents to communicate via AIR network
- * Uses @akaoio/tui for proper terminal UI
+ * Uses blessed for professional terminal UI
  */
 
 import Gun from '@akaoio/gun';
-import { color, Color, reset, Viewport } from '@akaoio/tui';
 import readline from 'readline';
+import blessed from 'blessed';
 import type { DashboardConfig, DashboardState } from './types.js';
 
 export interface AgentMode {
@@ -28,23 +28,44 @@ export class Dashboard {
   private startTime: number;
   private rl: readline.Interface | null;
   private state: DashboardState;
-  private viewport: any;
+  private screen: blessed.Widgets.Screen;
+  private agentList: blessed.Widgets.ListElement;
+  private messageLog: blessed.Widgets.LogElement;
+  private statusBar: blessed.Widgets.BoxElement;
 
   constructor(config: DashboardConfig = {}) {
     this.agentMode = config.agentMode || null;
     
-    // Initialize viewport for responsive terminal handling
-    this.viewport = Viewport.getInstance();
+    // Initialize blessed screen
+    this.screen = blessed.screen({
+      smartCSR: true,
+      title: 'AIR Dashboard'
+    });
     
-    this.gun = Gun({
+    // Create UI components
+    this.setupUI();
+    
+    // Connect directly to remote GUN network - no local server
+    const gunConfig = {
       peers: config.peers || ['https://air.akao.io:8765/gun'],
       localStorage: false,
       radisk: false,
       file: false,
       web: false,
       multicast: false,
-      axe: false,
-      ...config.gunOptions
+      axe: false
+    };
+    
+    console.log('🔧 DEBUG: Creating GUN instance with config:', gunConfig);
+    this.gun = Gun(gunConfig);
+    
+    // Add connection debug
+    this.gun.on('hi', (peer: any) => {
+      console.log('🔧 DEBUG: GUN peer connected:', peer);
+    });
+    
+    this.gun.on('bye', (peer: any) => {
+      console.log('🔧 DEBUG: GUN peer disconnected:', peer);
     });
     
     this.agents = new Map();
@@ -52,10 +73,7 @@ export class Dashboard {
     this.startTime = Date.now();
     this.rl = null;
     
-    // Initialize state with terminal info
-    const dims = this.viewport.getDimensions();
-    const caps = this.viewport.getCapabilities();
-    
+    // Initialize state
     this.state = {
       agents: new Map(),
       messages: [],
@@ -68,21 +86,120 @@ export class Dashboard {
       startTime: Date.now(),
       isRunning: false,
       terminal: {
-        width: dims.width,
-        height: dims.height,
-        capabilities: caps
+        width: process.stdout.columns || 80,
+        height: process.stdout.rows || 24,
+        capabilities: { terminalProgram: process.env.TERM || 'unknown' }
       }
     };
     
-    // Handle terminal resize events
-    this.viewport.onResize((newDims) => {
-      this.state.terminal = {
-        width: newDims.width,
-        height: newDims.height,
-        capabilities: this.viewport.getCapabilities()
-      };
-      this.handleResize();
+    // Handle screen resize
+    this.screen.on('resize', () => {
+      this.render();
     });
+    
+    // Handle exit
+    this.screen.key(['escape', 'q', 'C-c'], () => {
+      process.exit(0);
+    });
+  }
+  
+  private setupUI(): void {
+    // Status bar at top
+    this.statusBar = blessed.box({
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: 3,
+      content: 'AIR Dashboard - Connecting...',
+      tags: true,
+      border: {
+        type: 'line'
+      },
+      style: {
+        fg: 'white',
+        bg: 'blue',
+        border: {
+          fg: '#f0f0f0'
+        }
+      }
+    });
+    
+    // Agent list on left
+    this.agentList = blessed.list({
+      label: 'Active Agents',
+      top: 3,
+      left: 0,
+      width: '50%',
+      height: '80%',
+      tags: true,
+      border: {
+        type: 'line'
+      },
+      style: {
+        fg: 'white',
+        bg: 'black',
+        border: {
+          fg: '#f0f0f0'
+        },
+        selected: {
+          bg: 'blue'
+        }
+      },
+      keys: true,
+      vi: true
+    });
+    
+    // Message log on right
+    this.messageLog = blessed.log({
+      label: 'Messages',
+      top: 3,
+      left: '50%',
+      width: '50%',
+      height: '80%',
+      tags: true,
+      border: {
+        type: 'line'
+      },
+      style: {
+        fg: 'white',
+        bg: 'black',
+        border: {
+          fg: '#f0f0f0'
+        }
+      },
+      scrollable: true,
+      alwaysScroll: true,
+      mouse: true
+    });
+    
+    // Help text at bottom
+    const helpBox = blessed.box({
+      bottom: 0,
+      left: 0,
+      width: '100%',
+      height: 3,
+      content: 'Keys: [q/ESC] Exit, [↑/↓] Navigate agents, [Mouse] Scroll messages',
+      tags: true,
+      border: {
+        type: 'line'
+      },
+      style: {
+        fg: 'cyan',
+        bg: 'black',
+        border: {
+          fg: '#f0f0f0'
+        }
+      }
+    });
+    
+    // Append all widgets to screen
+    this.screen.append(this.statusBar);
+    this.screen.append(this.agentList);
+    this.screen.append(this.messageLog);
+    this.screen.append(helpBox);
+    
+    // Initial render
+    this.screen.render();
   }
   
   // CLI mode for agents
@@ -129,12 +246,160 @@ export class Dashboard {
   // Monitor mode - just watch
   async start(): Promise<void> {
     this.state.isRunning = true;
-    console.clear();
-    this.printHeader();
     
-    // Monitor agents
+    // Show initial connecting status
+    this.statusBar.setContent('{center}📡 Connecting to AIR network...{/center}');
+    this.messageLog.log('Connecting to remote AIR network...');
+    this.screen.render();
+    
+    // Wait for peer connection before loading data
+    let peerConnected = false;
+    this.gun.on('hi', (peer: any) => {
+      this.messageLog.log('GUN peer connected');
+      peerConnected = true;
+      
+      // Now load existing data after connection is established
+      setTimeout(() => {
+        this.loadExistingData();
+      }, 1000); // Give 1 second for graph sync
+    });
+    
+    // Fallback: load data after 3 seconds even if no peer event
+    setTimeout(() => {
+      if (!peerConnected) {
+        this.messageLog.log('No peer event received, loading data anyway...');
+        this.loadExistingData();
+      }
+    }, 3000);
+    
+    this.setupRealtimeListeners();
+    
+    // Start the uptime counter
+    setInterval(() => {
+      this.state.metrics.uptime = Math.floor((Date.now() - this.startTime) / 1000);
+      this.render();
+    }, 1000);
+    
+    this.render();
+  }
+  
+  private loadExistingData(): void {
+    console.log('🔧 DEBUG: Loading existing data...');
+    
+    // Try direct access to test if the problem is with the callback firing
+    const agentsRef = this.gun.get('agents');
+    const messagesRef = this.gun.get('air-dashboard').get('messages');
+    const broadcastRef = this.gun.get('broadcast');
+    
+    console.log('🔧 DEBUG: Created references, now setting up .once() callbacks...');
+    
+    // Load existing agents with better error handling
+    agentsRef.once((data: any, key: string) => {
+      console.log('🔧 DEBUG: agents .once() callback fired! key:', key, 'data:', data ? 'present' : 'null');
+      if (data && typeof data === 'object') {
+        Object.keys(data).forEach(k => {
+          if (k !== '_' && data[k] && typeof data[k] === 'object') {
+            this.agents.set(k, data[k]);
+            this.state.agents.set(k, data[k]);
+          }
+        });
+        this.state.metrics.agentCount = this.agents.size;
+        console.log('🔧 DEBUG: Loaded', this.agents.size, 'existing agents');
+        this.render();
+      } else {
+        console.log('🔧 DEBUG: No existing agents found or data is not an object');
+      }
+    }, { wait: 0 }); // Force immediate execution
+    
+    // Load existing air-dashboard messages
+    messagesRef.once((data: any, key: string) => {
+      console.log('🔧 DEBUG: air-dashboard messages .once() callback fired! key:', key, 'data:', data ? 'present' : 'null');
+      if (data && typeof data === 'object') {
+        Object.keys(data).forEach(k => {
+          if (k !== '_' && data[k] && data[k].from && data[k].message) {
+            this.messageCount++;
+            this.state.metrics.messageCount = this.messageCount;
+            this.state.messages.push({
+              from: data[k].from,
+              text: data[k].message,
+              timestamp: new Date().toLocaleTimeString()
+            });
+            this.logMessage(data[k].from, data[k].message, data[k].team);
+          }
+        });
+        console.log('🔧 DEBUG: Loaded', this.messageCount, 'existing air-dashboard messages');
+        this.render();
+      } else {
+        console.log('🔧 DEBUG: No existing air-dashboard messages found or data is not an object');
+      }
+    }, { wait: 0 });
+    
+    // Load existing broadcast messages
+    broadcastRef.once((data: any, key: string) => {
+      console.log('🔧 DEBUG: broadcast .once() callback fired! key:', key, 'data:', data ? 'present' : 'null');
+      if (data && typeof data === 'object') {
+        Object.keys(data).forEach(k => {
+          if (k !== '_' && data[k] && data[k].from && data[k].message) {
+            this.messageCount++;
+            this.state.metrics.messageCount = this.messageCount;
+            this.logMessage(data[k].from, data[k].message, data[k].team || 'broadcast');
+          }
+        });
+        console.log('🔧 DEBUG: Loaded existing broadcast messages, total:', this.messageCount);
+        this.render();
+      } else {
+        console.log('🔧 DEBUG: No existing broadcast messages found or data is not an object');
+      }
+    }, { wait: 0 });
+    
+    console.log('🔧 DEBUG: All .once() callbacks have been set up');
+  }
+  
+  private setupRealtimeListeners(): void {
+    console.log('🔧 DEBUG: Setting up real-time listeners...');
+    
+    // Try simple .on() listeners instead of .map().on() for broader detection
+    this.gun.get('broadcast').on((data: any, key: string) => {
+      console.log('🔧 DEBUG: broadcast .on() listener fired! key:', key, 'data:', data ? 'present' : 'null');
+      if (data && typeof data === 'object') {
+        // Iterate through all properties of broadcast
+        Object.keys(data).forEach(k => {
+          if (k !== '_' && data[k] && data[k].from && data[k].message) {
+            console.log('🔧 DEBUG: Found broadcast message:', k, data[k]);
+            this.messageCount++;
+            this.state.metrics.messageCount = this.messageCount;
+            this.logMessage(data[k].from, data[k].message, data[k].team || 'broadcast');
+          }
+        });
+      }
+    });
+    
+    this.gun.get('air-dashboard').get('messages').on((data: any, key: string) => {
+      console.log('🔧 DEBUG: air-dashboard messages .on() listener fired! key:', key, 'data:', data ? 'present' : 'null');
+      if (data && typeof data === 'object') {
+        Object.keys(data).forEach(k => {
+          if (k !== '_' && data[k] && data[k].from && data[k].message) {
+            console.log('🔧 DEBUG: Found air-dashboard message:', k, data[k]);
+            this.messageCount++;
+            this.state.metrics.messageCount = this.messageCount;
+            this.state.messages.push({
+              from: data[k].from,
+              text: data[k].message,
+              timestamp: new Date().toLocaleTimeString()
+            });
+            if (this.state.messages.length > 100) {
+              this.state.messages.shift();
+            }
+            this.logMessage(data[k].from, data[k].message, data[k].team);
+          }
+        });
+      }
+    });
+    
+    // Also keep the map listeners as backup
     this.gun.get('agents').map().on((data: any, key: string) => {
-      if (data && key) {
+      if (data && key && !this.agents.has(key)) {
+        console.log('🔧 DEBUG: New agent via .map():', key, data);
         this.agents.set(key, data);
         this.state.agents.set(key, data);
         this.state.metrics.agentCount = this.agents.size;
@@ -142,9 +407,9 @@ export class Dashboard {
       }
     });
     
-    // Monitor all messages
-    this.gun.get('air-dashboard').get('messages').map().on((data: any) => {
+    this.gun.get('air-dashboard').get('messages').map().on((data: any, key: string) => {
       if (data && data.from && data.message) {
+        console.log('🔧 DEBUG: New air-dashboard message via .map():', key, data);
         this.messageCount++;
         this.state.metrics.messageCount = this.messageCount;
         this.state.messages.push({
@@ -159,22 +424,16 @@ export class Dashboard {
       }
     });
     
-    // Monitor broadcasts
-    this.gun.get('broadcast').map().on((data: any) => {
+    this.gun.get('broadcast').map().on((data: any, key: string) => {
       if (data && data.from && data.message) {
+        console.log('🔧 DEBUG: New broadcast message via .map():', key, data);
         this.messageCount++;
         this.state.metrics.messageCount = this.messageCount;
         this.logMessage(data.from, data.message, data.team || 'broadcast');
       }
     });
     
-    // Update uptime
-    setInterval(() => {
-      this.state.metrics.uptime = Math.floor((Date.now() - this.startTime) / 1000);
-      this.render();
-    }, 1000);
-    
-    this.render();
+    console.log('🔧 DEBUG: All real-time listeners set up (.on() + .map().on())');
   }
   
   // Interactive mode for humans
@@ -184,6 +443,13 @@ export class Dashboard {
     } else {
       this.startHumanInteractive();
     }
+  }
+  
+  private printHeader(): void {
+    console.log('╔══════════════════════════════════════════════════════════════╗');
+    console.log('║            🌐 AIR Living Agent Network Dashboard            ║');
+    console.log('║                  https://air.akao.io:8765/gun                ║');
+    console.log('╚══════════════════════════════════════════════════════════════╝');
   }
   
   private startHumanInteractive(): void {
@@ -333,81 +599,43 @@ export class Dashboard {
   
   private render(): void {
     const uptime = Math.floor((Date.now() - this.startTime) / 1000);
-    const dims = this.viewport.getDimensions();
-    const breakpoint = this.viewport.getBreakpoint();
     
-    // Adaptive status line based on terminal size
-    let statusLine;
-    if (dims.width < 60) {
-      // Compact mobile view
-      statusLine = `📊 ${this.agents.size}/34 | ${this.messageCount}msg | ${uptime}s >`;
-    } else if (dims.width < 100) {
-      // Standard view
-      statusLine = `📊 Agents: ${this.agents.size}/34 | Messages: ${this.messageCount} | ${uptime}s >`;
-    } else {
-      // Extended view with terminal info
-      const caps = this.viewport.getCapabilities();
-      const terminalInfo = caps.terminalProgram ? ` | ${caps.terminalProgram}` : '';
-      statusLine = `📊 Agents: ${this.agents.size}/34 | Messages: ${this.messageCount} | Uptime: ${uptime}s | Terminal: ${dims.width}×${dims.height} (${breakpoint})${terminalInfo} >`;
-    }
+    // Update status bar
+    const statusText = `{center}🌐 AIR Dashboard | Agents: ${this.agents.size}/34 | Messages: ${this.messageCount} | Uptime: ${uptime}s{/center}`;
+    this.statusBar.setContent(statusText);
     
-    process.stdout.write(`\r${statusLine}`);
+    // Update agent list
+    const agentItems = Array.from(this.agents.entries()).map(([id, data]) => {
+      const status = data.status || 'unknown';
+      const team = data.team || 'none';
+      return `${id} (${team}) - ${status}`;
+    });
+    this.agentList.setItems(agentItems);
+    
+    // Render screen
+    this.screen.render();
   }
   
-  private handleResize(): void {
-    // Clear screen and re-render on resize
-    console.clear();
-    this.printHeader();
-    this.render();
-  }
-  
-  private printHeader(): void {
-    const dims = this.viewport.getDimensions();
-    const caps = this.viewport.getCapabilities();
-    
-    // Responsive header based on terminal size
-    if (dims.width < 60) {
-      // Mobile header
-      console.log('🌐 AIR Dashboard');
-      console.log('air.akao.io:8765');
-    } else {
-      // Full header
-      const borderLength = Math.min(dims.width, 70);
-      const border = '═'.repeat(borderLength);
-      console.log('╔' + border + '╗');
-      console.log('║            🌐 AIR Living Agent Network Dashboard                    ║');
-      console.log('║                  https://air.akao.io:8765/gun                      ║');
-      console.log('╚' + border + '╝');
-    }
-    
-    console.log('');
-    
-    // Show terminal capabilities in debug mode
-    if (process.env.DEBUG?.includes('dashboard')) {
-      console.log(`🖥️  Terminal: ${dims.width}×${dims.height}, ${caps.terminalProgram || 'Unknown'}, Breakpoint: ${this.viewport.getBreakpoint()}`);
-    }
-    
-    console.log('📡 Monitoring AIR network (read-only)...\n');
-  }
   
   private logMessage(from: string, message: string, team?: string): void {
     const time = new Date().toLocaleTimeString();
     let coloredMessage: string;
     
-    // Use @akaoio/tui color functions for team colors
+    // Blessed color tags for team colors
     if (team === 'meta') {
-      coloredMessage = `${color.call(this, Color.Magenta)}[${time}] ${from}: ${message}${reset()}`;
+      coloredMessage = `{magenta-fg}[${time}] ${from}: ${message}{/magenta-fg}`;
     } else if (team === 'core-fix') {
-      coloredMessage = `${color.call(this, Color.Red)}[${time}] ${from}: ${message}${reset()}`;
+      coloredMessage = `{red-fg}[${time}] ${from}: ${message}{/red-fg}`;
     } else if (team === 'security') {
-      coloredMessage = `${color.call(this, Color.Yellow)}[${time}] ${from}: ${message}${reset()}`;
+      coloredMessage = `{yellow-fg}[${time}] ${from}: ${message}{/yellow-fg}`;
     } else if (team === 'air' || team === 'team-air') {
-      coloredMessage = `${color.call(this, Color.Cyan)}[${time}] ${from}: ${message}${reset()}`;
+      coloredMessage = `{cyan-fg}[${time}] ${from}: ${message}{/cyan-fg}`;
     } else {
-      coloredMessage = `${color.call(this, Color.White)}[${time}] ${from}: ${message}${reset()}`;
+      coloredMessage = `{white-fg}[${time}] ${from}: ${message}{/white-fg}`;
     }
     
-    console.log('\n' + coloredMessage);
+    // Add message to blessed log
+    this.messageLog.log(coloredMessage);
     this.render();
   }
   
@@ -417,6 +645,7 @@ export class Dashboard {
     if (this.rl) {
       this.rl.close();
     }
+    this.screen.destroy();
   }
   
   public getState(): DashboardState {

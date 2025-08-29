@@ -1,174 +1,228 @@
 # @akaoio/dashboard
 
-Real-time Living Agent Network Dashboard - Core technology for visualizing distributed systems.
+Real-time Living Agent Network Dashboard - Revolutionary visualization and control center for the Air-based multi-agent ecosystem
+
+> Where agents come alive - real-time visualization of the living agent ecosystem
+
+**Version**: 1.0.0  
+**License**: MIT  
+**Repository**: https://github.com/akaoio/dashboard
+
+## Overview
+
+Dashboard provides a revolutionary real-time window into the Living Agent Network, visualizing agent communication, task execution, and system health through direct P2P connections.
+
+## Core Principles
+
+
+### Living Agent Visualization
+Real-time display of agent activity, communication, and state across the entire Air network
+
+
+
+### P2P Network Monitoring
+Direct connection to GUN database on port 8765 for live agent updates without polling
+
+
+
+### Universal Access
+Works in any modern browser with no installation - pure web technologies
+
+
+
+### Zero Configuration
+Automatically discovers and connects to the local Air network
+
+
+
 
 ## Features
 
-- 🌐 **Real-time P2P monitoring** via @akaoio/air
-- 🤖 **Living Agent tracking** across 34 agents in 13 teams
-- 💬 **Live message streaming** with distributed broadcast
-- 📊 **Comprehensive metrics** collection and visualization
-- 🖥️ **Beautiful TUI** built with @akaoio/tui
-- 🔒 **Secure communication** using @akaoio/gun (our fork, not the original)
-- ⚡ **High performance** compiled with @akaoio/builder
-- ✅ **Battle-tested** with @akaoio/battle framework
+
+- **Real-Time Agent Status**: Live status of all 34+ agents with health indicators
+
+- **Communication Flow**: Visual representation of agent-to-agent messages in real-time
+
+- **Task Pipeline**: Track tasks as they flow through different agents and teams
+
+- **Integrity Monitoring**: Real-time integrity scores and violation alerts
+
+- **Network Topology**: Interactive graph showing agent connections and dependencies
+
+- **Event Stream**: Live feed of all agent events and system messages
+
+- **Performance Metrics**: Real-time performance data for each agent and the overall system
+
+- **Command Center**: Direct control interface for agent activation and task assignment
+
 
 ## Installation
 
 ```bash
-npm install @akaoio/dashboard
+# Quick install with default settings
+curl -sSL https://raw.githubusercontent.com/akaoio/manager/main/install.sh | sh
+
+# Install as systemd service
+curl -sSL https://raw.githubusercontent.com/akaoio/manager/main/install.sh | sh -s -- --systemd
+
+# Install with custom prefix
+curl -sSL https://raw.githubusercontent.com/akaoio/manager/main/install.sh | sh -s -- --prefix=/opt/manager
 ```
 
 ## Usage
 
-### CLI
-
 ```bash
-# Run with TUI interface
-npx dashboard
+# Initialize a new Manager-based project
+manager init
 
-# Run with simple console output
-npx dashboard --simple
+# Configure settings
+manager config set update.interval 3600
 
-# Custom configuration
-npx dashboard --peers "https://peer1.com/gun,https://peer2.com/gun" --title "My Dashboard"
+# Install application
+manager install --systemd
+
+# Check health
+manager health
+
+# Update application
+manager update
 ```
 
-### Programmatic API
+## Commands
 
-```typescript
-import { Dashboard, LiveDashboard } from '@akaoio/dashboard';
 
-// Simple dashboard
-const dashboard = new Dashboard({
-  peers: ['https://air.akao.io:8765/gun'],
-  title: 'My Network Dashboard'
-});
+### `serve`
+Start the dashboard web server
 
-await dashboard.start();
+**Usage**: `dashboard serve [options]`
 
-// TUI dashboard
-const liveDashboard = new LiveDashboard({
-  peers: ['https://air.akao.io:8765/gun']
-});
 
-await liveDashboard.start();
-```
 
-### Components
+### `connect`
+Connect to Air network
 
-```typescript
-import { 
-  AgentTracker, 
-  MessageFeed, 
-  NetworkMonitor, 
-  MetricsCollector 
-} from '@akaoio/dashboard';
-import Gun from '@akaoio/gun';
+**Usage**: `dashboard connect [url]`
 
-const gun = Gun({ peers: ['https://air.akao.io:8765/gun'] });
 
-// Track agents
-const tracker = new AgentTracker(gun);
-await tracker.start();
-const agents = tracker.getOnlineAgents();
 
-// Monitor messages
-const feed = new MessageFeed(gun);
-await feed.start();
-feed.on('message', (msg) => console.log(msg));
+### `monitor`
+Monitor agent activity
 
-// Network monitoring
-const monitor = new NetworkMonitor(gun);
-await monitor.start();
-const health = monitor.getNetworkHealth();
+**Usage**: `dashboard monitor [agent-name]`
 
-// Collect metrics
-const collector = new MetricsCollector(gun);
-await collector.start();
-const metrics = collector.getMetrics();
-```
 
-## Keyboard Shortcuts (TUI Mode)
 
-- `Q` / `Ctrl+C` - Quit
-- `R` - Clear messages
-- `H` - Show help
-- `Tab` - Switch focus
-- `Arrow Keys` - Navigate
+### `export`
+Export dashboard data
 
-## Architecture
+**Usage**: `dashboard export [format]`
 
-@akaoio/dashboard is built on top of our core technologies:
 
-- **@akaoio/tui** - Terminal UI framework for beautiful dashboards
-- **@akaoio/air** - P2P communication layer
-- **@akaoio/gun** - Our enhanced fork of GUN for distributed data
-- **@akaoio/battle** - Testing framework
-- **@akaoio/builder** - TypeScript compilation
+
+
+
+
+
+
+
+## Architecture Components
+
+
+### Web Interface
+Pure HTML/CSS/JS interface with real-time updates
+
+**Responsibility**: User interaction and visualization
+
+
+### Air Network Connector
+WebSocket connection to GUN database on port 8765
+
+**Responsibility**: Real-time data synchronization with agent network
+
+
+### Agent Monitor
+Tracks all active agents, their status, and communication
+
+**Responsibility**: Agent lifecycle and activity monitoring
+
+
+### Task Visualizer
+Real-time display of task flow between agents
+
+**Responsibility**: Task tracking and dependency visualization
+
+
+### Integrity Scanner
+Live integrity scoring and violation detection
+
+**Responsibility**: Code quality and integrity enforcement
+
+
+### Network Graph
+Interactive visualization of agent relationships and communication patterns
+
+**Responsibility**: Network topology and message flow display
+
+
+
+## Use Cases
+
+
+
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+
+| `DASHBOARD_PORT` | Default port for dashboard server | `3000` |
+
+| `DASHBOARD_AIR_URL` | Default Air network URL | `http://localhost:8765` |
+
+| `DASHBOARD_THEME` | UI theme (light/dark/auto) | `auto` |
+
+| `DASHBOARD_UPDATE_INTERVAL` | Data refresh interval in milliseconds | `1000` |
+
+| `DASHBOARD_MAX_EVENTS` | Maximum events to display in stream | `1000` |
+
+
+## 
+
+
+
+### Benefits
+
+
 
 ## Development
 
+Manager follows strict POSIX compliance and zero-dependency principles. All code must be pure POSIX shell without bashisms or GNU extensions.
+
+### Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Ensure POSIX compliance
+4. Add tests using the test framework
+5. Submit a pull request
+
+### Testing
+
 ```bash
-# Build
-npm run build
+# Run all tests
+./tests/run-all.sh
 
-# Development mode
-npm run dev
-
-# Test with @akaoio/battle
-npm test
-
-# Run dashboard locally
-npm start
+# Run specific test suite
+./tests/test-core.sh
 ```
 
-## API Reference
+## Support
 
-### Dashboard
+- **Issues**: [GitHub Issues](https://github.com/akaoio/manager/issues)
+- **Documentation**: [Wiki](https://github.com/akaoio/manager/wiki)
+- **Community**: [Discussions](https://github.com/akaoio/manager/discussions)
 
-Main dashboard orchestrator class.
+---
 
-```typescript
-new Dashboard(config?: DashboardConfig)
-```
+*@akaoio/dashboard - The foundational framework that brings order to chaos*
 
-### LiveDashboard
-
-Advanced TUI-based dashboard with full @akaoio/tui integration.
-
-```typescript
-new LiveDashboard(config?: DashboardConfig)
-```
-
-### Configuration
-
-```typescript
-interface DashboardConfig {
-  title?: string;
-  width?: number;
-  height?: number;
-  peers?: string[];
-  gunOptions?: any;
-  theme?: DashboardTheme;
-  refreshInterval?: number;
-}
-```
-
-## Contributing
-
-This is a core @akaoio technology. All contributions must:
-
-1. Use @akaoio/builder for compilation
-2. Test with @akaoio/battle
-3. Follow source-first development
-4. Never create trash files in project root
-5. Maintain backward compatibility
-
-## License
-
-MIT
-
-## Credits
-
-Built with ❤️ using the @akaoio technology stack.
+*Built with zero dependencies for eternal reliability*

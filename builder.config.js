@@ -4,7 +4,14 @@
  */
 
 export default {
-  entry: ['src/Dashboard.ts', 'src/cli.ts', 'src/constants.ts'],
+  entry: [
+    'src/Dashboard.ts', 
+    'src/cli.ts', 
+    'src/constants.ts',
+    'src/server.ts',
+    'src/cli/workrooms-cli.ts',
+    'src/services/WorkroomsService.ts'
+  ],
   target: 'library',
   formats: ['cjs', 'esm'],
   dts: false,
@@ -14,7 +21,10 @@ export default {
     'node:*',
     'readline',
     'commander',
-    '@akaoio/tui',
+    'blessed',
+    'chalk', 
+    'ws',
+    'uuid',
     '@akaoio/air', 
     '@akaoio/gun'
   ],

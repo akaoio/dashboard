@@ -1,0 +1,31 @@
+[Unit]
+Description=AKAO.IO Dashboard Server - Real-time Agent Collaboration
+Documentation=https://github.com/akaoio/dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=x
+Group=x
+WorkingDirectory=/home/x/core/projects/dashboard
+ExecStart=/usr/bin/node /home/x/core/projects/dashboard/server.js
+Restart=always
+RestartSec=5
+
+# Security hardening (relaxed for user access)
+PrivateTmp=false
+NoNewPrivileges=true
+ProtectSystem=false
+ProtectHome=false
+
+# Environment
+Environment="NODE_ENV=production"
+Environment="DASHBOARD_PORT=8767"
+Environment="AIR_PEERS=http://localhost:8765/gun"
+
+# Resource limits
+LimitNOFILE=4096
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

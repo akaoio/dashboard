@@ -3,7 +3,7 @@
  */
 
 export const DEFAULT_PEERS = [
-  'https://air.akao.io:8765/gun'
+  'wss://air.akao.io:8765/gun'
 ];
 
 export const AGENT_TEAMS = [
