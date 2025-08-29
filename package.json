@@ -40,7 +40,9 @@
   "devDependencies": {
     "@akaoio/battle": "^1.2.3",
     "@akaoio/builder": "*",
-    "@types/node": "^20.19.11",
+    "@types/js-yaml": "^4.0.5",
+    "@types/node": "^20.19.11", 
+    "@types/ws": "^8.5.5",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   },
